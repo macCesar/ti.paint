@@ -11,50 +11,50 @@ import org.appcelerator.titanium.util.TiConvert;
 
 public class PathPaint {
 
-  private Path myPath;
-  private Paint myPaint;
-  private Boolean isErease = false;
+    private Path myPath;
+    private Paint myPaint;
+    private Boolean isErease = false;
 
-  public void setPaint(Paint p) {
-    myPaint = p;
-  }
-
-  public Paint getPaint() {
-    if (isErease) {
-      myPaint.setAlpha(0xFF);
-      myPaint.setColor(Color.TRANSPARENT);
-      myPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-      myPaint.setColor(TiConvert.toColor("black", TiApplication.getAppCurrentActivity()));
+    public void setPaint(Paint p) {
+        myPaint = p;
     }
-    return myPaint;
-  }
 
-  public Path getPath() {
-    return myPath;
-  }
+    public Paint getPaint() {
+        if (isErease) {
+            myPaint.setAlpha(0xFF);
+            myPaint.setColor(Color.TRANSPARENT);
+            myPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+            myPaint.setColor(TiConvert.toColor("black", TiApplication.getAppCurrentActivity()));
+        }
+        return myPaint;
+    }
 
-  public void setPath(Path p) {
-    myPath = p;
-  }
+    public Path getPath() {
+        return myPath;
+    }
 
-  public Boolean getEarase() {
-    return isErease;
-  }
+    public void setPath(Path p) {
+        myPath = p;
+    }
 
-  public void setEarase(Boolean p) {
-    isErease = p;
-  }
+    public Boolean getEarase() {
+        return isErease;
+    }
 
-  public PathPaint() {
-    myPath = new Path();
-    myPaint = new Paint();
+    public void setEarase(Boolean p) {
+        isErease = p;
+    }
 
-    myPaint = new Paint();
-    myPaint.setDither(true);
-    myPaint.setAntiAlias(true);
-    myPaint.setStyle(Paint.Style.STROKE);
-    myPaint.setStrokeCap(Paint.Cap.ROUND);
-    myPaint.setStrokeJoin(Paint.Join.ROUND);
-    myPaint.setColor(TiConvert.toColor("black", TiApplication.getAppCurrentActivity()));
-  }
+    public PathPaint() {
+        myPath = new Path();
+        myPaint = new Paint();
+
+        myPaint = new Paint();
+        myPaint.setDither(true);
+        myPaint.setAntiAlias(true);
+        myPaint.setStyle(Paint.Style.STROKE);
+        myPaint.setStrokeCap(Paint.Cap.ROUND);
+        myPaint.setStrokeJoin(Paint.Join.ROUND);
+        myPaint.setColor(TiConvert.toColor("black", TiApplication.getAppCurrentActivity()));
+    }
 }
