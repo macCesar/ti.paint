@@ -6,8 +6,8 @@ A **cross-platform Titanium SDK module** providing a paint surface user interfac
 ## Platform Support
 
 - **iOS**: v3.0.0 (iOS 12.0+)
-- **Android**: v6.0.0 (API 21+, Android 5.0+)
-- **Minimum Titanium SDK**: 12.0.0
+- **Android**: v6.1.0 (API 21+, Android 5.0+)
+- **Minimum Titanium SDK**: 12.0.0 (iOS), 13.0.0 (Android)
 
 ## Quick Start
 ```javascript

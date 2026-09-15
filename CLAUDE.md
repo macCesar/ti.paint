@@ -150,7 +150,7 @@ ti build -p android --build-only
 ### Testing the Titanium Module
 ```bash
 # Install module in test app (after building)
-ti module install android/dist/ti.paint-android-6.0.0.zip
+ti module install android/dist/ti.paint-android-6.1.0.zip
 ti module install ios/dist/ti.paint-iphone-3.0.0.zip
 
 # Run test app with module
@@ -312,6 +312,6 @@ setTimeout(function() {
 
 ---
 *Last updated: August 2025*
-*Module versions: Android 6.0.0, iOS 3.0.0*
+*Module versions: Android 6.1.0, iOS 3.0.0*
 *SDK requirement: 12.0.0+*
 *MAJOR RELEASE: Complete feature overhaul with cross-platform parity*
