@@ -225,6 +225,7 @@ public class UIPaintView extends TiUIView {
         private boolean isPlayingBack = false;
         private boolean isPaused = false;
         private long playbackInterval = 100;
+        private long basePlaybackInterval = 100;
 
         public PaintView(Context c) {
             super(c);
@@ -408,6 +409,7 @@ public class UIPaintView extends TiUIView {
             if (playbackInterval > 1000) {
                 playbackInterval = 1000;
             }
+            basePlaybackInterval = playbackInterval;
 
             playbackRunnable = new Runnable() {
                 @Override
@@ -450,7 +452,7 @@ public class UIPaintView extends TiUIView {
 
         public void setPlaybackSpeed(float speed) {
             if (isPlayingBack && speed > 0) {
-                playbackInterval = (long) (playbackInterval / speed);
+                playbackInterval = (long) (basePlaybackInterval / speed);
                 if (playbackRunnable != null && !isPaused) {
                     playbackHandler.removeCallbacks(playbackRunnable);
                     playbackHandler.postDelayed(playbackRunnable, playbackInterval);
