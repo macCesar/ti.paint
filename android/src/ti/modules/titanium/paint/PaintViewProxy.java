@@ -63,6 +63,11 @@ public class PaintViewProxy extends TiViewProxy {
   }
 
   @Kroll.method
+  public void fill(String color) {
+    paintView.fill(TiConvert.toColor(color, TiApplication.getAppCurrentActivity()));
+  }
+
+  @Kroll.method
   public void lineTo(int x, int y) {
     paintView.lineTo(x, y);
   }

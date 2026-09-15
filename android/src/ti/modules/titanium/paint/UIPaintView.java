@@ -152,6 +152,10 @@ public class UIPaintView extends TiUIView {
     tiPaintView.invalidate();
   }
 
+  public void fill(int color) {
+    tiPaintView.fill(color);
+  }
+
   public void enable(boolean enable) {
     tiPaintView.enable(enable);
   }
@@ -329,6 +333,12 @@ public class UIPaintView extends TiUIView {
         tiPaths.add(undoPaths.remove(undoPaths.size() - 1));
         invalidate();
       }
+    }
+
+    public void fill(int color) {
+      tiBitmap.eraseColor(color);
+      tiPaths.clear();
+      invalidate();
     }
 
     @Override

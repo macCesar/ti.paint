@@ -106,6 +106,14 @@ buttonClear.addEventListener('click', function () {
   paintView.clear()
 })
 
+if (OS_ANDROID) {
+  let buttonFill = createStyledButton('Fill', '#ffeaa7')
+  buttonFill.addEventListener('click', function () {
+    paintView.fill('#ff0000')
+  })
+  row1.add(buttonFill)
+}
+
 // Row 2 listeners
 buttonUndo.addEventListener('click', function () {
   paintView.undo()

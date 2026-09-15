@@ -98,6 +98,8 @@ Draw line to position x/y.
 **`enable(boolean)`**  
 Enable/disable drawing interaction.
 
+**`fill(color)`**  
+Fills the whole paint view with a solid color.
 
 ### Properties
 

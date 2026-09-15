@@ -34,6 +34,7 @@ v1.0    Initial Release
 v6.1.0  Rebuilt with Titanium SDK 13.4.1 (NDK 28.1) for 16 KB memory page size support
 	- 64-bit native libraries (arm64-v8a, x86_64) aligned to 16 KB, required by Google Play
 	- Minimum Titanium SDK raised to 13.0.0
+	- New fill(color) method, merged from tidev/ti.paint#36
 
 v6.0.0  MAJOR RELEASE: Advanced playback system and stroke persistence
 	- Enhanced existing undo/redo system for cross-platform consistency
