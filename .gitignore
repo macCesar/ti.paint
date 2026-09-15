@@ -38,3 +38,10 @@ node_modules/
 TESTS-*.xml
 
 .vscode/
+
+# Screenshots left in the project root
+/*.png
+/*.jpg
+/*.jpeg
+/screen-capture*
+/Captura*
