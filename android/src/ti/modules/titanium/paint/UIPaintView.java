@@ -336,7 +336,7 @@ public class UIPaintView extends TiUIView {
 
         @Override
         public boolean onTouchEvent(MotionEvent mainEvent) {
-            if (enabled) {
+            if (enabled && mainEvent.getPointerCount() <= maxTouchPoints) {
                 for (int i = 0; i < mainEvent.getPointerCount(); i++) {
                     float x = mainEvent.getX(i);
                     float y = mainEvent.getY(i);
