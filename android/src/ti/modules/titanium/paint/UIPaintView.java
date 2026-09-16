@@ -553,63 +553,6 @@ public class UIPaintView extends TiUIView {
             }
         }
 
-        private Path parsePathFromString(String pathString) {
-            if (pathString == null || pathString.isEmpty()) {
-                return new Path();
-            }
-
-            try {
-                // Simple approach: try to parse basic path commands
-                // Path.toString() format varies, so we'll create a simple parser
-                return parseSimplePathString(pathString);
-            } catch (Exception e) {
-                // If parsing fails, return empty path
-                return new Path();
-            }
-        }
-
-        private Path parseSimplePathString(String pathString) {
-            Path path = new Path();
-            
-            try {
-                // Debug log to see what we're trying to parse
-                Log.d("UIPaintView", "Parsing path: " + pathString);
-                
-                // More robust parsing using regex to extract coordinates
-                java.util.regex.Pattern coordPattern = java.util.regex.Pattern.compile("([+-]?\\d*\\.?\\d+)");
-                java.util.regex.Matcher matcher = coordPattern.matcher(pathString);
-                
-                java.util.List<Float> coords = new java.util.ArrayList<Float>();
-                while (matcher.find()) {
-                    try {
-                        coords.add(Float.parseFloat(matcher.group(1)));
-                    } catch (NumberFormatException ignored) {
-                        // Skip invalid numbers
-                    }
-                }
-                
-                // If we have at least 2 coordinates, create a simple path
-                if (coords.size() >= 2) {
-                    path.moveTo(coords.get(0), coords.get(1));
-                    
-                    // Add remaining coordinates as line segments
-                    for (int i = 2; i < coords.size() - 1; i += 2) {
-                        if (i + 1 < coords.size()) {
-                            path.lineTo(coords.get(i), coords.get(i + 1));
-                        }
-                    }
-                }
-                
-                Log.d("UIPaintView", "Parsed " + coords.size() + " coordinates");
-                
-            } catch (Exception e) {
-                Log.e("UIPaintView", "Path parsing failed: " + e.getMessage());
-                // Return empty path on any error
-            }
-
-            return path;
-        }
-
         private ArrayList<Map<String, Object>> createSimplePointsFromBounds(Path path) {
             ArrayList<Map<String, Object>> pointsArray = new ArrayList<Map<String, Object>>();
             
