@@ -6,27 +6,28 @@
 
 package ti.modules.titanium.paint;
 
-import org.appcelerator.kroll.KrollDict;
-
-import org.appcelerator.kroll.common.Log;
-import org.appcelerator.titanium.TiApplication;
-import org.appcelerator.titanium.TiC;
-import org.appcelerator.titanium.io.TiBaseFile;
-import org.appcelerator.titanium.io.TiFileFactory;
-import org.appcelerator.titanium.proxy.TiViewProxy;
-import org.appcelerator.titanium.util.TiConvert;
-import org.appcelerator.titanium.view.TiDrawableReference;
-import org.appcelerator.titanium.view.TiUIView;
-
 import android.content.Context;
-import android.graphics.*;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PathMeasure;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.MotionEvent;
 import android.view.View;
 
-import java.io.IOException;
-import java.io.InputStream;
+import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.TiApplication;
+import org.appcelerator.titanium.proxy.TiViewProxy;
+import org.appcelerator.titanium.util.TiConvert;
+import org.appcelerator.titanium.view.TiDrawableReference;
+import org.appcelerator.titanium.view.TiUIView;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +37,7 @@ public class UIPaintView extends TiUIView {
 
     public Paint tiPaint;
     public PaintView tiPaintView;
-    private KrollDict props;
+    private final KrollDict props;
     private Boolean eraseState = false;
     private int currentColor = -999999999;
     private int alphaState = -1;
@@ -46,19 +47,17 @@ public class UIPaintView extends TiUIView {
         super(proxy);
 
         props = proxy.getProperties();
-
         setPaintOptions(); // set initial paint options
 
-        // Create PaintView with proper initialization order
         tiPaintView = new PaintView(proxy.getActivity());
 
-        // Defer initialization to avoid this-escape warning
-        // This will be called after constructor completes
+        // Deferred so that 'this' does not escape before the subclass is initialized
         proxy.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                initializeNativeView();
-                
+                setNativeView(tiPaintView);
+                tiPaintView.initializeView();
+
                 if (props.containsKeyAndNotNull("image")) {
                     tiPaintView.setImage(props.getString("image"));
                 }
@@ -68,9 +67,7 @@ public class UIPaintView extends TiUIView {
 
     private void setPaintOptions() {
         if (currentColor == -999999999) {
-            currentColor = (props.containsKeyAndNotNull("strokeColor"))
-                    ? TiConvert.toColor(props, "strokeColor", TiApplication.getAppCurrentActivity())
-                    : TiConvert.toColor("black", TiApplication.getAppCurrentActivity());
+            currentColor = (props.containsKeyAndNotNull("strokeColor")) ? TiConvert.toColor(props, "strokeColor", TiApplication.getAppCurrentActivity()) : TiConvert.toColor("black", TiApplication.getAppCurrentActivity());
         }
 
         if (oldWidth == -1.0f) {
@@ -80,24 +77,17 @@ public class UIPaintView extends TiUIView {
         if (alphaState == -1) {
             alphaState = (props.containsKeyAndNotNull("strokeAlpha")) ? TiConvert.toInt(props.get("strokeAlpha")) : 255;
         }
-
         tiPaint = new Paint();
-
-        tiPaint.setDither(true);
         tiPaint.setAntiAlias(true);
+        tiPaint.setDither(true);
         tiPaint.setColor(currentColor);
         tiPaint.setStyle(Paint.Style.STROKE);
-        // tiPaint.setBlendMode(BlendMode.MULTIPLY);
-        tiPaint.setStrokeCap(Paint.Cap.ROUND);
         tiPaint.setStrokeJoin(Paint.Join.ROUND);
+        tiPaint.setStrokeCap(Paint.Cap.ROUND);
 
-        tiPaint.setAlpha(alphaState);
         tiPaint.setStrokeWidth(oldWidth);
-    }
+        tiPaint.setAlpha(alphaState);
 
-    private void initializeNativeView() {
-        setNativeView(tiPaintView);
-        tiPaintView.initializeView();
     }
 
     public void setStrokeWidth(Float width) {
@@ -106,6 +96,7 @@ public class UIPaintView extends TiUIView {
         tiPaint.setAlpha(alphaState);
         oldWidth = width;
     }
+
 
     public void setEraseMode(Boolean toggle) {
         eraseState = toggle;
@@ -131,9 +122,9 @@ public class UIPaintView extends TiUIView {
         alphaState = alpha;
     }
 
-    public void setImage(String _imagePath) {
+    public void setImage(String imagePath) {
         Log.d(LCAT, "Changing image.");
-        tiPaintView.setImage(_imagePath);
+        tiPaintView.setImage(imagePath);
     }
 
     public void clear() {
@@ -205,21 +196,21 @@ public class UIPaintView extends TiUIView {
 
         private static final int maxTouchPoints = 1;
 
-        private float currentX, currentY;
+        private float mX, mY;
 
+        private final ArrayList<PathPaint> tiPaths = new ArrayList<PathPaint>();
+        private final ArrayList<PathPaint> undoPaths = new ArrayList<PathPaint>();
         private Path mPath;
+        private Bitmap tiBitmap;
         private String tiImage;
         private Canvas tiCanvas;
-        private Bitmap tiBitmap;
-        private Paint tiBitmapPaint;
-        private PathPaint pathPaint;
+        private final Paint tiBitmapPaint;
         private boolean enabled = true;
-        private ArrayList<PathPaint> tiPaths = new ArrayList<PathPaint>();
-        private ArrayList<PathPaint> undoPaths = new ArrayList<PathPaint>();
+        private PathPaint pp;
 
         // Playback state
-        private ArrayList<PathPaint> playbackPaths = new ArrayList<PathPaint>();
-        private Handler playbackHandler = new Handler(Looper.getMainLooper());
+        private final ArrayList<PathPaint> playbackPaths = new ArrayList<PathPaint>();
+        private final Handler playbackHandler = new Handler(Looper.getMainLooper());
         private Runnable playbackRunnable;
         private int currentPlaybackIndex = 0;
         private boolean isPlayingBack = false;
@@ -232,10 +223,10 @@ public class UIPaintView extends TiUIView {
             tiBitmapPaint = new Paint(Paint.DITHER_FLAG);
             mPath = new Path();
 
-            pathPaint = new PathPaint();
-            pathPaint.setPath(mPath);
-            pathPaint.setPaint(tiPaint);
-            pathPaint.setEarase(eraseState);
+            pp = new PathPaint();
+            pp.setPath(mPath);
+            pp.setPaint(tiPaint);
+            pp.setEarase(eraseState);
         }
 
         void initializeView() {
@@ -243,33 +234,34 @@ public class UIPaintView extends TiUIView {
         }
 
         @Override
-        protected void onSizeChanged(int _width, int _height, int _oldWidth, int _oldHeight) {
-            super.onSizeChanged(_width, _height, _oldWidth, _oldHeight);
+        protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+            super.onSizeChanged(w, h, oldw, oldh);
 
             if (tiBitmap == null) {
                 if (tiImage != null) {
                     TiDrawableReference ref = TiDrawableReference.fromUrl(proxy, proxy.resolveUrl(null, tiImage));
                     if (ref.getBitmap() != null) {
-                        tiBitmap = Bitmap.createScaledBitmap(ref.getBitmap(), _width, _height, true);
+                        tiBitmap = Bitmap.createScaledBitmap(ref.getBitmap(), w, h, true);
                     } else {
-                        tiBitmap = Bitmap.createBitmap(_width, _height, Bitmap.Config.ARGB_8888);
+                        tiBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
                     }
                 } else {
-                    tiBitmap = Bitmap.createBitmap(_width, _height, Bitmap.Config.ARGB_8888);
+                    tiBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
                 }
                 tiCanvas = new Canvas(tiBitmap);
             } else {
-                tiBitmap = Bitmap.createScaledBitmap(tiBitmap, _width, _height, true);
+                tiBitmap = Bitmap.createScaledBitmap(tiBitmap, w, h, true);
                 tiCanvas = new Canvas(tiBitmap);
             }
+
         }
+
 
         @Override
         protected void onDraw(Canvas canvas) {
             if (tiBitmap != null) {
                 canvas.drawBitmap(tiBitmap, 0, 0, null);
             }
-
             // Choose which paths to draw based on playback state
             ArrayList<PathPaint> pathsToDraw = isPlayingBack ? playbackPaths : tiPaths;
 
@@ -283,43 +275,43 @@ public class UIPaintView extends TiUIView {
             }
         }
 
-        public void touch_start(float _x, float _y) {
+        public void touch_start(float x, float y) {
             setPaintOptions();
             undoPaths.clear();
             mPath.reset();
-            mPath.moveTo(_x, _y);
-            currentX = _x;
-            currentY = _y;
+            mPath.moveTo(x, y);
+            mX = x;
+            mY = y;
         }
 
         public void enable(boolean enable) {
             enabled = enable;
         }
 
-        public void touch_move(float _x, float _y) {
-            mPath.quadTo(currentX, currentY, (_x + currentX) / 2, (_y + currentY) / 2);
+        public void touch_move(float x, float y) {
+            mPath.quadTo(mX, mY, (x + mX) / 2, (y + mY) / 2);
 
-            currentX = _x;
-            currentY = _y;
+            mX = x;
+            mY = y;
         }
 
         public void touch_up() {
-            mPath.lineTo(currentX, currentY);
-            tiPaths.add(pathPaint);
+            mPath.lineTo(mX, mY);
+            tiPaths.add(pp);
 
             mPath = new Path();
-            pathPaint = new PathPaint();
-            pathPaint.setPath(mPath);
-            pathPaint.setPaint(tiPaint);
-            pathPaint.setEarase(eraseState);
+            pp = new PathPaint();
+            pp.setPath(mPath);
+            pp.setPaint(tiPaint);
+            pp.setEarase(eraseState);
         }
 
         public void newPath() {
             mPath = new Path();
-            pathPaint = new PathPaint();
-            pathPaint.setPath(mPath);
-            pathPaint.setPaint(tiPaint);
-            pathPaint.setEarase(eraseState);
+            pp = new PathPaint();
+            pp.setPath(mPath);
+            pp.setPaint(tiPaint);
+            pp.setEarase(eraseState);
         }
 
         public void undo() {
@@ -343,12 +335,12 @@ public class UIPaintView extends TiUIView {
         }
 
         @Override
-        public boolean onTouchEvent(MotionEvent _mainEvent) {
-            if (enabled && _mainEvent.getPointerCount() <= maxTouchPoints) {
-                for (int i = 0; i < _mainEvent.getPointerCount(); i++) {
-                    float x = _mainEvent.getX(i);
-                    float y = _mainEvent.getY(i);
-                    int action = _mainEvent.getAction();
+        public boolean onTouchEvent(MotionEvent mainEvent) {
+            if (enabled) {
+                for (int i = 0; i < mainEvent.getPointerCount(); i++) {
+                    float x = mainEvent.getX(i);
+                    float y = mainEvent.getY(i);
+                    int action = mainEvent.getAction();
                     if (action > 6) {
                         action = (action % 256) - 5;
                     }
@@ -371,9 +363,10 @@ public class UIPaintView extends TiUIView {
             return true;
         }
 
-        public void setImage(String _imagePath) {
+
+        public void setImage(String imagePath) {
             Log.d(LCAT, "setImage called");
-            tiImage = _imagePath;
+            tiImage = imagePath;
             if (tiImage == null) {
                 clear();
             } else {
@@ -488,9 +481,10 @@ public class UIPaintView extends TiUIView {
                 ArrayList<Map<String, Object>> pointsList = createSimplePointsFromBounds(pathPaint.getPath());
                 Object[] pointsArray = pointsList.toArray();
                 strokeData.put("points", pointsArray);
-                
+
                 // Keep pathData for debugging
                 strokeData.put("pathData", "points:" + pointsList.size());
+
 
                 strokesList.add(strokeData);
             }
@@ -515,7 +509,7 @@ public class UIPaintView extends TiUIView {
                     } else if (strokeObj instanceof Object[]) {
                         // The strokeObj is actually an array of individual stroke HashMaps
                         Object[] strokeArray = (Object[]) strokeObj;
-                        
+
                         // Process each element in the array as a separate stroke
                         for (Object individualStroke : strokeArray) {
                             if (individualStroke instanceof Map) {
@@ -528,7 +522,7 @@ public class UIPaintView extends TiUIView {
                     } else {
                         continue; // Skip unknown types
                     }
-                    
+
                     if (strokeData != null) {
                         processStroke(strokeData);
                     }
@@ -536,9 +530,9 @@ public class UIPaintView extends TiUIView {
 
                 // Refresh the view
                 invalidate();
-                
+
             } catch (Exception e) {
-                Log.e("UIPaintView", "ERROR in loadStrokes: " + e.getMessage(), e);
+                Log.e(LCAT, "ERROR in loadStrokes: " + e.getMessage(), e);
             }
         }
 
@@ -555,17 +549,17 @@ public class UIPaintView extends TiUIView {
 
         private ArrayList<Map<String, Object>> createSimplePointsFromBounds(Path path) {
             ArrayList<Map<String, Object>> pointsArray = new ArrayList<Map<String, Object>>();
-            
+
             try {
                 // Use PathMeasure to extract actual points from the path!
                 PathMeasure pathMeasure = new PathMeasure(path, false);
                 float pathLength = pathMeasure.getLength();
-                
+
                 if (pathLength > 0) {
                     // Extract points along the path at regular intervals
                     int numPoints = Math.min(20, Math.max(5, (int)(pathLength / 10))); // 5-20 points based on length
                     float[] coords = new float[2];
-                    
+
                     for (int i = 0; i < numPoints; i++) {
                         float distance = (pathLength * i) / (numPoints - 1);
                         if (pathMeasure.getPosTan(distance, coords, null)) {
@@ -575,15 +569,15 @@ public class UIPaintView extends TiUIView {
                             pointsArray.add(point);
                         }
                     }
-                    
+
                     }
             } catch (Exception e) {
-                Log.e("UIPaintView", "Error extracting points from path: " + e.getMessage());
+                Log.e(LCAT, "Error extracting points from path: " + e.getMessage());
             }
-            
+
             return pointsArray;
         }
-        
+
         private Path reconstructPathFromPoints(ArrayList<Map<String, Object>> pointsArray) {
             Path path = new Path();
 
@@ -612,7 +606,7 @@ public class UIPaintView extends TiUIView {
 
             return path;
         }
-        
+
         private void processStroke(Map<String, Object> strokeData) {
             // Create new PathPaint
             PathPaint pathPaint = new PathPaint();
@@ -654,15 +648,15 @@ public class UIPaintView extends TiUIView {
 
             // Reconstruct path from points data (both Android and iOS compatible)
             Path path = new Path();
-            
+
             if (strokeData.containsKey("points")) {
                 Object pointsObj = strokeData.get("points");
                 ArrayList<Map<String, Object>> pointsArray = new ArrayList<Map<String, Object>>();
-                
+
                 // Handle both Object[] (from Android) and ArrayList (from iOS)
                 if (pointsObj instanceof Object[]) {
                     Object[] pointsObjArray = (Object[]) pointsObj;
-                    
+
                     for (Object pointObj : pointsObjArray) {
                         if (pointObj instanceof Map) {
                             @SuppressWarnings("unchecked")
@@ -675,14 +669,14 @@ public class UIPaintView extends TiUIView {
                     ArrayList<Map<String, Object>> tempArray = (ArrayList<Map<String, Object>>) pointsObj;
                     pointsArray = tempArray;
                 }
-                
+
                 path = reconstructPathFromPoints(pointsArray);
             }
 
             pathPaint.setPath(path);
             tiPaths.add(pathPaint);
         }
-        
+
         private float getFloatValue(Object value) {
             if (value instanceof Integer) {
                 return ((Integer) value).floatValue();
@@ -695,5 +689,4 @@ public class UIPaintView extends TiUIView {
             }
         }
     }
-
 }

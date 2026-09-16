@@ -6,6 +6,10 @@
 
 package ti.modules.titanium.paint;
 
+import android.app.Activity;
+import android.os.Handler;
+import android.os.Message;
+
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.TiMessenger;
@@ -15,13 +19,37 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiUIView;
 import org.jetbrains.annotations.NotNull;
 
-import android.app.Activity;
-import android.os.Handler;
-import android.os.Message;
-
 @Kroll.proxy(creatableInModule = PaintModule.class)
 public class PaintViewProxy extends TiViewProxy {
+    private static final int MSG_CLEAR = 60000;
+    private static final int MSG_LOAD = 60001;
+    private static final int MSG_LOAD_STROKES = 60002;
     private UIPaintView paintView;
+    private final Handler handler = new Handler(TiMessenger.getMainMessenger().getLooper(), new Handler.Callback() {
+        public boolean handleMessage(@NotNull Message msg) {
+            switch (msg.what) {
+                case MSG_CLEAR: {
+                    AsyncResult result = (AsyncResult) msg.obj;
+                    paintView.clear();
+                    result.setResult(null);
+                    return true;
+                }
+                case MSG_LOAD: {
+                    AsyncResult result = (AsyncResult) msg.obj;
+                    paintView.setImage(result.getResult().toString());
+                    result.setResult(null);
+                    return true;
+                }
+                case MSG_LOAD_STROKES: {
+                    AsyncResult result = (AsyncResult) msg.obj;
+                    paintView.loadStrokes((Object[]) result.getArg());
+                    result.setResult(null);
+                    return true;
+                }
+            }
+            return false;
+        }
+    });
 
     public PaintViewProxy() {
         super();
@@ -159,41 +187,10 @@ public class PaintViewProxy extends TiViewProxy {
     public void loadStrokes(Object[] strokesData) {
         if (paintView != null) {
             if (!TiApplication.isUIThread()) {
-                TiMessenger.sendBlockingMainMessage(handler.obtainMessage(MSG_LOAD_STROKES, strokesData));
+                TiMessenger.sendBlockingMainMessage(handler.obtainMessage(MSG_LOAD_STROKES), strokesData);
             } else {
                 paintView.loadStrokes(strokesData);
             }
         }
     }
-
-    private static final int MSG_LOAD = 60001;
-    private static final int MSG_CLEAR = 60000;
-    private static final int MSG_LOAD_STROKES = 60002;
-
-    private final Handler handler = new Handler(TiMessenger.getMainMessenger().getLooper(), new Handler.Callback() {
-        public boolean handleMessage(@NotNull Message msg) {
-            switch (msg.what) {
-                case MSG_CLEAR: {
-                    AsyncResult result = (AsyncResult) msg.obj;
-                    paintView.clear();
-                    result.setResult(null);
-                    return true;
-                }
-                case MSG_LOAD: {
-                    AsyncResult result = (AsyncResult) msg.obj;
-                    paintView.setImage(result.getResult().toString());
-                    result.setResult(null);
-                    return true;
-                }
-                case MSG_LOAD_STROKES: {
-                    AsyncResult result = (AsyncResult) msg.obj;
-                    Object[] strokesData = (Object[]) result.getResult();
-                    paintView.loadStrokes(strokesData);
-                    result.setResult(null);
-                    return true;
-                }
-            }
-            return false;
-        }
-    });
 }

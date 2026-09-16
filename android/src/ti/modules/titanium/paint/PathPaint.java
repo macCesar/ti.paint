@@ -1,8 +1,8 @@
 package ti.modules.titanium.paint;
 
-import android.graphics.Path;
-import android.graphics.Paint;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 
@@ -15,8 +15,17 @@ public class PathPaint {
     private Paint myPaint;
     private Boolean isErease = false;
 
-    public void setPaint(Paint p) {
-        myPaint = p;
+    public PathPaint() {
+        myPath = new Path();
+        myPaint = new Paint();
+
+        myPaint = new Paint();
+        myPaint.setAntiAlias(true);
+        myPaint.setDither(true);
+        myPaint.setColor(TiConvert.toColor("black", TiApplication.getAppCurrentActivity()));
+        myPaint.setStyle(Paint.Style.STROKE);
+        myPaint.setStrokeJoin(Paint.Join.ROUND);
+        myPaint.setStrokeCap(Paint.Cap.ROUND);
     }
 
     public Paint getPaint() {
@@ -27,6 +36,10 @@ public class PathPaint {
             myPaint.setColor(TiConvert.toColor("black", TiApplication.getAppCurrentActivity()));
         }
         return myPaint;
+    }
+
+    public void setPaint(Paint p) {
+        myPaint = p;
     }
 
     public Path getPath() {
@@ -43,18 +56,5 @@ public class PathPaint {
 
     public void setEarase(Boolean p) {
         isErease = p;
-    }
-
-    public PathPaint() {
-        myPath = new Path();
-        myPaint = new Paint();
-
-        myPaint = new Paint();
-        myPaint.setDither(true);
-        myPaint.setAntiAlias(true);
-        myPaint.setStyle(Paint.Style.STROKE);
-        myPaint.setStrokeCap(Paint.Cap.ROUND);
-        myPaint.setStrokeJoin(Paint.Join.ROUND);
-        myPaint.setColor(TiConvert.toColor("black", TiApplication.getAppCurrentActivity()));
     }
 }
