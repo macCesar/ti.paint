@@ -35,6 +35,7 @@ v6.1.1  Release drawing resources when the view is released
 	- Adapt Michael's fix from tidev/ti.paint#40 (ede71f3): clear the proxy/view references, bitmap, canvas and stroke history
 	- Cancel playback callbacks and clear playback data and the active stroke on release
 	- Safely finish queued proxy messages after release; ignore late drawing, layout and playback callbacks
+	- Packaged with Titanium SDK 13.4.1.GA; the generated AAR requires Android API 24 (Android 6.0)
 
 v6.1.0  Rebuilt with Titanium SDK 13.4.1 (NDK 28.1) for 16 KB memory page size support
 	- 64-bit native libraries (arm64-v8a, x86_64) aligned to 16 KB, required by Google Play

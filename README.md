@@ -6,8 +6,14 @@ A **cross-platform Titanium SDK module** providing a paint surface user interfac
 ## Platform Support
 
 - **iOS**: v3.0.0 (iOS 12.0+)
-- **Android**: v6.1.1 (API 21+, Android 5.0+)
+- **Android**: v6.1.1 (API 24+, Android 6.0+ for the packaged build)
 - **Minimum Titanium SDK**: 12.0.0 (iOS), 13.0.0 (Android)
+
+### Android 6.1.1 prerelease
+
+Built with Titanium SDK 13.4.1.GA. Includes the view-release fix from [tidev/ti.paint#40](https://github.com/tidev/ti.paint/pull/40), extended to cancel playback callbacks and release drawing, undo and playback data. It also includes the changes since this fork's Android 6.0.0 release: `fill(color)`, image-loading fixes, playback speed relative to the original speed, and 16 KB page size support.
+
+Compilation and lifecycle regression tests pass on an Android device. LeakCanary heap validation and a complete functional regression pass are still pending. See [the release tests](tests/android/README.md) for the checks performed. The module manifest retains its Titanium 13.0.0 minimum; the packaged AAR requires Android API 24.
 
 ## Quick Start
 ```javascript
