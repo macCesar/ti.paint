@@ -30,19 +30,25 @@ public class PaintViewProxy extends TiViewProxy {
             switch (msg.what) {
                 case MSG_CLEAR: {
                     AsyncResult result = (AsyncResult) msg.obj;
-                    paintView.clear();
+                    if (paintView != null) {
+                        paintView.clear();
+                    }
                     result.setResult(null);
                     return true;
                 }
                 case MSG_LOAD: {
                     AsyncResult result = (AsyncResult) msg.obj;
-                    paintView.setImage(result.getResult().toString());
+                    if (paintView != null) {
+                        paintView.setImage(result.getResult().toString());
+                    }
                     result.setResult(null);
                     return true;
                 }
                 case MSG_LOAD_STROKES: {
                     AsyncResult result = (AsyncResult) msg.obj;
-                    paintView.loadStrokes((Object[]) result.getArg());
+                    if (paintView != null) {
+                        paintView.loadStrokes((Object[]) result.getArg());
+                    }
                     result.setResult(null);
                     return true;
                 }

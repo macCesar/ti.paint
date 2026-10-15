@@ -55,6 +55,9 @@ public class UIPaintView extends TiUIView {
         proxy.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                if (tiPaintView == null) {
+                    return;
+                }
                 setNativeView(tiPaintView);
                 tiPaintView.initializeView();
 
@@ -217,6 +220,7 @@ public class UIPaintView extends TiUIView {
         private Canvas tiCanvas;
         private final Paint tiBitmapPaint;
         private boolean enabled = true;
+        private boolean released = false;
         private PathPaint pp;
 
         // Playback state
@@ -247,6 +251,9 @@ public class UIPaintView extends TiUIView {
         @Override
         protected void onSizeChanged(int w, int h, int oldw, int oldh) {
             super.onSizeChanged(w, h, oldw, oldh);
+            if (released) {
+                return;
+            }
 
             if (tiBitmap == null) {
                 if (tiImage != null) {
@@ -270,6 +277,9 @@ public class UIPaintView extends TiUIView {
 
         @Override
         protected void onDraw(Canvas canvas) {
+            if (released) {
+                return;
+            }
             if (tiBitmap != null) {
                 canvas.drawBitmap(tiBitmap, 0, 0, null);
             }
@@ -347,6 +357,9 @@ public class UIPaintView extends TiUIView {
 
         @Override
         public boolean onTouchEvent(MotionEvent mainEvent) {
+            if (released) {
+                return false;
+            }
             if (enabled && mainEvent.getPointerCount() <= maxTouchPoints) {
                 for (int i = 0; i < mainEvent.getPointerCount(); i++) {
                     float x = mainEvent.getX(i);
@@ -397,8 +410,13 @@ public class UIPaintView extends TiUIView {
         }
 
         public void release() {
+            released = true;
+            stopPlayback();
+            playbackRunnable = null;
             tiPaths.clear();
             undoPaths.clear();
+            mPath = null;
+            pp = null;
             tiCanvas = null;
             tiBitmap = null;
             tiImage = null;
@@ -426,6 +444,9 @@ public class UIPaintView extends TiUIView {
             playbackRunnable = new Runnable() {
                 @Override
                 public void run() {
+                    if (released) {
+                        return;
+                    }
                     if (currentPlaybackIndex < tiPaths.size() && isPlayingBack && !isPaused) {
                         playbackPaths.add(tiPaths.get(currentPlaybackIndex));
                         currentPlaybackIndex++;
